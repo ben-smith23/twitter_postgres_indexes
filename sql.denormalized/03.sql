@@ -1,12 +1,8 @@
 SELECT
-    LOWER(data->>'lang') AS lang,
-    COUNT(DISTINCT data->>'id') AS count
-FROM tweets_jsonb, 
-     jsonb_array_elements(
-         COALESCE(data->'entities'->'hashtags', '[]') || 
-         COALESCE(data->'extended_tweet'->'entities'->'hashtags', '[]')
-     ) AS hashtags
-WHERE LOWER(hashtags->>'text') = 'coronavirus'
+    lang,
+    count(DISTINCT id_tweets) as count
+FROM tweet_tags
+JOIN tweets USING (id_tweets)
+WHERE tag='#coronavirus'
 GROUP BY lang
-ORDER BY count DESC, lang;
-
+ORDER BY count DESC,lang;

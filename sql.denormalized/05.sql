@@ -1,26 +1,16 @@
-WITH filtered_tweets AS (
-    SELECT
-        data->>'id' AS id_tweets,
-        LOWER(data->>'lang') AS lang,
-        COALESCE(data->'extended_tweet'->>'full_text', data->>'text') AS text
-    FROM tweets_jsonb
-    WHERE LOWER(data->>'lang') = 'en'
-      AND to_tsvector('english', COALESCE(data->'extended_tweet'->>'full_text', data->>'text')) @@ to_tsquery('english','coronavirus')
-), hashtags_expanded AS (
-    SELECT
-        ft.id_tweets,
-        LOWER('#' || jsonb->>'text') AS tag
-    FROM filtered_tweets ft, 
-    jsonb_array_elements(
-        COALESCE(ft.data->'entities'->'hashtags', '[]') ||
-        COALESCE(ft.data->'extended_tweet'->'entities'->'hashtags', '[]')
-    ) AS jsonb
-)
 SELECT
     tag,
-    COUNT(*) AS count
-FROM hashtags_expanded
+    count(*) AS count
+FROM (
+    SELECT DISTINCT
+        id_tweets,
+        tag
+    FROM tweets
+    JOIN tweet_tags USING (id_tweets)
+    WHERE to_tsvector('english',text)@@to_tsquery('english','coronavirus')
+      AND lang='en'
+) t
 GROUP BY tag
-ORDER BY count DESC, tag
-LIMIT 1000;
-
+ORDER BY count DESC,tag
+LIMIT 1000
+;

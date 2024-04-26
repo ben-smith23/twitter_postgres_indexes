@@ -1,8 +1,3 @@
-SELECT count(DISTINCT data->>'id') AS tweet_count
-FROM tweets_jsonb, 
-     jsonb_array_elements(
-         COALESCE(data->'entities'->'hashtags', '[]') || 
-         COALESCE(data->'extended_tweet'->'entities'->'hashtags', '[]')
-     ) AS hashtags
-WHERE hashtags->>'text' = 'coronavirus';
-
+SELECT count(distinct id_tweets)
+FROM tweet_tags
+WHERE tag='#coronavirus';
